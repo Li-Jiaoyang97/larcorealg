@@ -590,6 +590,7 @@ namespace geo {
      * @tparam Coords type of object holding the value of the needed coordinates
      * @param coords object holding the value of the needed coordinates
      * @return a newly created `Vector` object with coordinates from `coords`
+     * @see `geo::vect::fillCoords()`
      * 
      * To create a vector of dimension _N_, the first _N_ values are extracted
      * from `coords` using `Coords::operator[](std::size_t)`. For example:
@@ -607,6 +608,21 @@ namespace geo {
     template <typename Vector, typename Coords>
     constexpr Vector makeFromCoords(Coords&& coords);
     
+    /**
+     * @brief Fills a coordinate array with the coordinates of a vector.
+     * @tparam Vector type of vector being copied from
+     * @tparam Coords type of coordinate array to be filled
+     * @param src the vector to read the coordinates from
+     * @param dest the array to be filled
+     * @return the number of coordinates filled (that's `Vector`'s dimension)
+     * @see `geo::vect::makeFromCoords()`
+     *
+     * The `Coords` array type is expected to provide a indexing operator
+     * returning a r-value, that is `coords[i]` can be assigned to.
+     */
+    template <typename Vector, typename Coords>
+    unsigned int fillCoords(Coords& dest, Vector const& src);
+
     /// Type of a coordinate reader for a vector type.
     template <typename Vector>
     using CoordReader_t
@@ -1684,6 +1700,15 @@ auto geo::vect::coord(Vector& v, unsigned int n) noexcept {
   return vect::bindCoord<Vector>(v, coordManager<Vector>(n));
 }
 
+//------------------------------------------------------------------------
+template <typename Vector, typename Coords>
+unsigned int geo::vect::fillCoords(Coords& dest, Vector const& src)
+{
+  // this is simpler than makeFromCoords() because doesn't attempt constexpr
+  for (std::size_t i = 0; i < geo::vect::dimension(src); ++i)
+    dest[i] = geo::vect::coord(src, i);
+  return geo::vect::dimension(src);
+} // geo::vect::fillCoords()
 
 //------------------------------------------------------------------------------
 template <typename Vector>
